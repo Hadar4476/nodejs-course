@@ -7,12 +7,42 @@
 
 // http is a built-in package of node. additional packages: fs, path, os etc.
 const http = require("http");
+const fs = require("fs");
 
 const server = http.createServer((req, res) => {
   // console.log({ req });
   // getting the request after accessing localhost:3000 on the browser
   console.log(req.url, req.method, req.headers);
 
+  const url = req.url;
+  const method = req.method;
+
+  if (url === "/") {
+    res.write("<html>");
+    res.write(`
+    <head>
+    <title>Enter Message</title>
+    </head>`);
+    res.write(`
+    <body>
+    <form action="/message" method="POST">
+      <input type="text" name="message"/>
+      <button type="submit">Send</button>
+    </form>
+    </body>`);
+    res.write("</html>");
+
+    return res.end();
+  } else if (url === "/message" && method === "POST") {
+    // creating a file
+    fs.writeFileSync("message.txt", "SOME TEXT");
+
+    // redirecting the user
+    res.statusCode = 302;
+    res.setHeader("Location", "/");
+
+    return res.end();
+  }
   // sending a response with setting the header to be html type
   res.setHeader("Content-Type", "text/html");
 
