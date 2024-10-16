@@ -6,61 +6,18 @@
 // is complete, this behavior is good for continous processing which will not enforce the program to delay as much compared to normal JS.
 
 // http is a built-in package of node. additional packages: fs, path, os etc.
-const http = require("http");
-const fs = require("fs");
+const http = require('http');
+
+// not built-in
+const routes = require('./routes');
 
 const server = http.createServer((req, res) => {
   // console.log({ req });
   // getting the request after accessing localhost:3000 on the browser
   console.log(req.url, req.method, req.headers);
 
-  const url = req.url;
-  const method = req.method;
-
-  if (url === "/") {
-    res.write("<html>");
-    res.write(`
-    <head>
-    <title>Enter Message</title>
-    </head>`);
-    res.write(`
-    <body>
-    <form action="/message" method="POST">
-      <input type="text" name="message"/>
-      <button type="submit">Send</button>
-    </form>
-    </body>`);
-    res.write("</html>");
-
-    return res.end();
-  } else if (url === "/message" && method === "POST") {
-    // creating a file
-    fs.writeFileSync("message.txt", "SOME TEXT");
-
-    // redirecting the user
-    res.statusCode = 302;
-    res.setHeader("Location", "/");
-
-    return res.end();
-  }
-  // sending a response with setting the header to be html type
-  res.setHeader("Content-Type", "text/html");
-
-  // response body
-  res.write("<html>");
-  res.write(`
-    <head>
-    <title>My First Page</title>
-    </head>`);
-  res.write(`
-    <body>
-    <h1>Hello from my NodeJS server!</h1>
-    </body>`);
-  res.write("</html>");
-
-  // ending the response
-  res.end();
+  routes(req, res);
 });
 
 // listening to a port which the server will run on
-server.listen("3000");
+server.listen('3000');
