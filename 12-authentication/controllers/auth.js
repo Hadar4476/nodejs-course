@@ -6,20 +6,25 @@ const User = require("../models/user");
 exports.getLogin = (req, res, next) => {
   console.log(req.session.isLoggedIn);
 
+  const message = req.flash("loginError");
+
   res.render("auth/login", {
     pageTitle: "Login",
     path: "/login",
-    isLoggedIn: req.session.isLoggedIn,
+    // passing the value of loginError to the view
+    errorMessage: message[0],
   });
 };
 
 exports.getSignup = (req, res, next) => {
   console.log(req.session.isLoggedIn);
 
+  const message = req.flash("signupError");
+
   res.render("auth/signup", {
     pageTitle: "Sign Up",
     path: "/signup",
-    isLoggedIn: req.session.isLoggedIn,
+    errorMessage: message[0],
   });
 };
 
@@ -30,6 +35,9 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (!user) {
+        // after initializing flash in app.js it can be used on the request
+        req.flash("loginError", "Invalid email or password");
+
         return res.redirect("/login");
       }
 
@@ -42,6 +50,8 @@ exports.postLogin = (req, res, next) => {
             return res.redirect("/");
           });
         }
+
+        req.flash("loginError", "Invalid email or password");
 
         throw "No Match";
       });
@@ -61,6 +71,8 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (user) {
+        req.flash("signupError", "Email already exists");
+
         return res.redirect("/signup");
       }
 
