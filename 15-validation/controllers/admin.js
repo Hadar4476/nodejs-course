@@ -1,3 +1,5 @@
+const { validationResult } = require("express-validator");
+
 const Product = require("../models/product");
 
 exports.getAddProduct = (req, res, next) => {
@@ -14,6 +16,19 @@ exports.postAddProduct = (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
   const userId = req.session.user._id;
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const errorsArray = errors.array();
+
+    return res.render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      errorMessage: errorsArray[0].msg,
+    });
+  }
+
   const product = new Product({
     title,
     price,
@@ -60,6 +75,18 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const errorsArray = errors.array();
+
+    return res.render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      errorMessage: errorsArray[0].msg,
+    });
+  }
 
   Product.findOne({ _id: prodId, userId: req.user._id })
     .then((product) => {

@@ -1,4 +1,4 @@
-const path = require("path");
+const { body } = require("express-validator");
 
 const express = require("express");
 
@@ -19,6 +19,12 @@ router.get("/products", checkAuthentication, adminController.getProducts);
 router.post(
   "/add-product",
   verifyCsrfToken,
+  [
+    body("title").isString().isLength({ min: 3 }).trim(),
+    body("price").isFloat(),
+    body("imageUrl").isURL(),
+    body("description").isString().isLength({ min: 5, max: 400 }).trim(),
+  ],
   checkAuthentication,
   adminController.postAddProduct
 );
@@ -32,6 +38,12 @@ router.get(
 router.post(
   "/edit-product",
   verifyCsrfToken,
+  [
+    body("title").isString().isLength({ min: 3 }).trim(),
+    body("price").isFloat(),
+    body("imageUrl").isURL(),
+    body("description").isString().isLength({ min: 5, max: 400 }).trim(),
+  ],
   checkAuthentication,
   adminController.postEditProduct
 );
