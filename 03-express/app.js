@@ -1,11 +1,18 @@
-const path = require('path');
+const path = require("path");
 
-const express = require('express');
-const bodyParser = require('body-parser');
+// NPM
+// npm install --save express
+// why do we add --save for installation?
+
+// because the package will get installed in the node_modules folder
+// but won't be included in the package.json file
+// in npm version 5.0, the default installation is --save so no need to add that
+const express = require("express");
+const bodyParser = require("body-parser");
 
 // ROUTES
-const productRoutes = require('./routes/product');
-const shopRoutes = require('./routes/shop');
+const productRoutes = require("./routes/product");
+const shopRoutes = require("./routes/shop");
 
 const app = express();
 
@@ -14,7 +21,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // serving static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 // app.use('/add-product', (req, res, next) => {
 //   res.send(`
@@ -59,7 +66,7 @@ app.use(shopRoutes);
 app.use((req, res, next) => {
   // res.status(404).send('<h1>Page not found</h1>');
 
-  res.status(404).sendFile(path.join(__dirname, 'views', '404-page.html'));
+  res.status(404).sendFile(path.join(__dirname, "views", "404-page.html"));
 });
 
 app.listen(3000);
