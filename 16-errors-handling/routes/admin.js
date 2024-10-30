@@ -1,56 +1,58 @@
-const path = require('path');
+const { body } = require("express-validator");
 
-const express = require('express');
-const { body } = require('express-validator/check');
+const express = require("express");
 
-const adminController = require('../controllers/admin');
-const isAuth = require('../middleware/is-auth');
+const adminController = require("../controllers/admin");
+
+const checkAuthentication = require("../middleware/auth");
+const verifyCsrfToken = require("../middleware/csrf");
 
 const router = express.Router();
 
 // /admin/add-product => GET
-router.get('/add-product', isAuth, adminController.getAddProduct);
+router.get("/add-product", checkAuthentication, adminController.getAddProduct);
 
 // /admin/products => GET
-router.get('/products', isAuth, adminController.getProducts);
+router.get("/products", checkAuthentication, adminController.getProducts);
 
-// /admin/add-product => POST
+// // /admin/add-product => POST
 router.post(
-  '/add-product',
+  "/add-product",
+  verifyCsrfToken,
   [
-    body('title')
-      .isString()
-      .isLength({ min: 3 })
-      .trim(),
-    body('imageUrl').isURL(),
-    body('price').isFloat(),
-    body('description')
-      .isLength({ min: 5, max: 400 })
-      .trim()
+    body("title").isString().isLength({ min: 3 }).trim(),
+    body("price").isFloat(),
+    body("imageUrl").isURL(),
+    body("description").isString().isLength({ min: 5, max: 400 }).trim(),
   ],
-  isAuth,
+  checkAuthentication,
   adminController.postAddProduct
 );
 
-router.get('/edit-product/:productId', isAuth, adminController.getEditProduct);
+router.get(
+  "/edit-product/:productId",
+  checkAuthentication,
+  adminController.getEditProduct
+);
 
 router.post(
-  '/edit-product',
+  "/edit-product",
+  verifyCsrfToken,
   [
-    body('title')
-      .isString()
-      .isLength({ min: 3 })
-      .trim(),
-    body('imageUrl').isURL(),
-    body('price').isFloat(),
-    body('description')
-      .isLength({ min: 5, max: 400 })
-      .trim()
+    body("title").isString().isLength({ min: 3 }).trim(),
+    body("price").isFloat(),
+    body("imageUrl").isURL(),
+    body("description").isString().isLength({ min: 5, max: 400 }).trim(),
   ],
-  isAuth,
+  checkAuthentication,
   adminController.postEditProduct
 );
 
-router.post('/delete-product', isAuth, adminController.postDeleteProduct);
+router.post(
+  "/delete-product",
+  verifyCsrfToken,
+  checkAuthentication,
+  adminController.postDeleteProduct
+);
 
 module.exports = router;
