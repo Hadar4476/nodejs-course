@@ -6,6 +6,8 @@ const fileHelper = require("../util/file");
 
 const Product = require("../models/product");
 
+const ITEMS_PER_PAGE = 2;
+
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
@@ -145,15 +147,33 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.find({ userId: req.user._id })
-    .then((products) => {
-      console.log(products);
+  const page = +req.query.page || 1;
 
-      res.render("admin/products", {
-        prods: products,
-        pageTitle: "Admin Products",
-        path: "/admin/products",
-      });
+  Product.find()
+    // PAGINATION
+    .skip((page - 1) * ITEMS_PER_PAGE)
+    // limits the amount of fetched items from mongo
+    .limit(ITEMS_PER_PAGE)
+    .then((products) => {
+      // counting the amount of documents
+      Product.countDocuments()
+        .then((totalProductsCount) => {
+          const pagesCount = Math.ceil(totalProductsCount / ITEMS_PER_PAGE);
+          return {
+            totalPages: pagesCount,
+            currPage: page,
+            hasPrev: page > 1,
+            hasNext: page < pagesCount,
+          };
+        })
+        .then((pagingData) => {
+          res.render("admin/products", {
+            prods: products,
+            pageTitle: "Admin Products",
+            path: "/admin/products",
+            pagination: pagingData,
+          });
+        });
     })
     .catch((err) => {
       const error = new Error(err);
