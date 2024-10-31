@@ -1,3 +1,8 @@
+const fs = require("fs");
+const path = require("path");
+
+const PDFDocument = require("pdfkit");
+
 const Product = require("../models/product");
 const Order = require("../models/order");
 
@@ -151,5 +156,95 @@ exports.getOrders = (req, res, next) => {
       const error = new Error(err);
       error.httpStatusCode = 500;
       return next(error);
+    });
+};
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+
+  Order.findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return next(new Error("No order found."));
+      }
+
+      const isUserOrder = order.userId.toString() === req.user._id.toString();
+
+      if (!isUserOrder) {
+        return next(new Error("Unauthorized"));
+      }
+
+      const invoiceName = "invoice-" + orderId + ".pdf";
+      const invoicePath = path.join("data", "invoices", invoiceName);
+
+      const pdfDoc = new PDFDocument();
+
+      res.setHeader("Content-Type", "application/pdf");
+
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="' + invoiceName + '"'
+      );
+
+      pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      pdfDoc.pipe(res);
+
+      pdfDoc.fontSize(26).text("Invoice", {
+        underline: true,
+      });
+
+      pdfDoc.text("----------------------------------");
+
+      let totalPrice = 0;
+      order.products.forEach((productData) => {
+        const { product, quantity } = productData;
+
+        totalPrice += quantity * product.price;
+
+        pdfDoc
+          .fontSize(14)
+          .text(product.title + "-" + quantity + "x" + "$" + product.price);
+      });
+
+      pdfDoc.text("----------------------------------");
+      pdfDoc.fontSize(20).text("Total Price: $" + totalPrice);
+
+      pdfDoc.end();
+
+      // // this is fine for small files which won't take very long
+      // // it may cause overloading because the server process this in memory and memory is limited
+      // fs.readFile(invoicePath, (err, data) => {
+      //   if (err) {
+      //     return next(err);
+      //   }
+
+      //   // will open the pdf in another tab
+      //   res.setHeader("Content-Type", "application/pdf");
+
+      //   // will download the file with its extension
+      //   res.setHeader(
+      //     "Content-Disposition",
+      //     'attachment; filename="' + invoiceName + '"'
+      //   );
+
+      //   res.send(data);
+      // });
+
+      // // instead of reading it like above, it should be streamed
+      // // this will ensure that Node will read the file step by step - in chunks
+      // const file = fs.createReadStream(invoicePath);
+
+      // res.setHeader("Content-Type", "application/pdf");
+
+      // res.setHeader(
+      //   "Content-Disposition",
+      //   'attachment; filename="' + invoiceName + '"'
+      // );
+
+      // // because the response is a writable stream, we can pipe the file to it
+      // file.pipe(res);
+    })
+    .catch((err) => {
+      return next(err);
     });
 };

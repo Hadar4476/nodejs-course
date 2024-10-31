@@ -1,4 +1,9 @@
+const fs = require("fs");
+const path = require("path");
+
 const { validationResult } = require("express-validator");
+
+const fileHelper = require("../util/file");
 
 const Product = require("../models/product");
 
@@ -31,7 +36,7 @@ exports.postAddProduct = (req, res, next) => {
     });
   }
 
-  const imageUrl = image.path.replace("\\", "/");
+  const imageUrl = "/" + image.path.replace("\\", "/");
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -96,7 +101,9 @@ exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
+
+  const image = req.file;
+
   const updatedDesc = req.body.description;
 
   const errors = validationResult(req);
@@ -116,7 +123,14 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
-      product.imageUrl = updatedImageUrl;
+
+      if (image) {
+        // deleting a file with a helper
+        fileHelper.deleteFile(product.imageUrl);
+
+        // adding '/' to make it absolute
+        product.imageUrl = "/" + image.path.replace("\\", "/");
+      }
 
       return product.save();
     })
@@ -151,7 +165,19 @@ exports.getProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteOne({ _id: prodId, userId: req.user._id })
+
+  Product.findById(prodId)
+    .then((product) => {
+      if (!product) {
+        return next(new Error("Product not found"));
+      }
+
+      const imagePath = path.join(process.cwd(), product.imageUrl);
+
+      fileHelper.deleteFile(imagePath);
+
+      return Product.deleteOne({ _id: prodId, userId: req.user._id });
+    })
     .then(() => {
       console.log("DESTROYED PRODUCT");
       res.redirect("/admin/products");

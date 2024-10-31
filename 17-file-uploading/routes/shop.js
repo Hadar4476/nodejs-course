@@ -38,4 +38,6 @@ router.post(
 
 router.get("/orders", checkAuthentication, shopController.getOrders);
 
+router.get("/orders/:orderId", checkAuthentication, shopController.getInvoice);
+
 module.exports = router;

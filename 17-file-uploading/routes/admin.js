@@ -40,7 +40,6 @@ router.post(
   [
     body("title").isString().isLength({ min: 3 }).trim(),
     body("price").isFloat(),
-    body("imageUrl").isURL(),
     body("description").isString().isLength({ min: 5, max: 400 }).trim(),
   ],
   checkAuthentication,
