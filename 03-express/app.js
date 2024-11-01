@@ -49,7 +49,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // });
 
 // for this point there is not exact which can be set, so the general route should always stay
-// at the bottom because if not it will treat the "/" for every route that start with it.
+// at the bottom because if not, it will treat the "/" for every route that start with it.
 // app.use('/', (req, res, next) => {
 //   res.send('<h1>Homepage</h1>');
 // });
