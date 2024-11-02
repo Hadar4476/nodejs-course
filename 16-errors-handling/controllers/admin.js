@@ -21,12 +21,20 @@ exports.postAddProduct = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorsArray = errors.array();
+    const message = errorsArray[0].msg;
+
+    // // only works in REST APIs
+    // // if this was just for throwing an error instead of rendering back/redirecting I could use:
+    // // and this will reach the catch block which will forward that error to the error middleware in app.js
+    // const error = new Error(message);
+    // error.httpStatusCode = 422;
+    // throw error;
 
     return res.status(422).render("admin/edit-product", {
       pageTitle: "Add Product",
       path: "/admin/add-product",
       editing: false,
-      errorMessage: errorsArray[0].msg,
+      errorMessage: message,
     });
   }
 
@@ -45,6 +53,8 @@ exports.postAddProduct = (req, res, next) => {
       res.redirect("/admin/products");
     })
     .catch((err) => {
+      // you can also throw errors in then blocks to get here but throwing error in catch blocks won't work
+      // instead just use next(err) to reach the special middleware in app.js with 4 arguments
       const error = new Error(err);
       error.httpStatusCode = 500;
       return next(error);

@@ -55,7 +55,7 @@ class Feed extends Component {
       this.setState({ postPage: page });
     }
 
-    fetch("URL")
+    fetch(`http://localhost:8080/feed/posts?page=${page}`)
       .then((res) => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch posts.");
@@ -64,8 +64,15 @@ class Feed extends Component {
         return res.json();
       })
       .then((resData) => {
+        const mappedPosts = resData.posts.map((post) => {
+          return {
+            ...post,
+            imagePath: post.imageUrl,
+          };
+        });
+
         this.setState({
-          posts: resData.posts,
+          posts: mappedPosts,
           totalPosts: resData.totalItems,
           postsLoading: false,
         });
@@ -113,14 +120,42 @@ class Feed extends Component {
       editLoading: true,
     });
 
+    const formData = new FormData();
+    formData.append("title", postData.title);
+    formData.append("content", postData.content);
+
+    // this is the field which was set by multer configuration in server -> app.js:
+    // app.use(multer({ storage: fileStorage, fileFilter }).single("image"));
+    // look for image.js in the utils folder to see how to image is being generated
+    formData.append("image", postData.image);
+
     // Set up data (with image!)
-    let url = "URL";
+    let url = "http://localhost:8080/feed/posts";
+    let method = "POST";
 
     if (this.state.editPost) {
-      url = "URL";
+      url = `http://localhost:8080/feed/posts/${this.state.editPost._id}`;
+      method = "PUT";
     }
 
-    fetch(url)
+    fetch(url, {
+      method,
+
+      // JSON
+      // // because we want to upload a file here, we can't use application/json
+      // // because json is only text and for file uploading we should use form data
+      // headers: {
+      //   // "Content-Type": "application/json",
+
+      // },
+      // body: JSON.stringify({
+      //   title: postData.title,
+      //   content: postData.content,
+      // }),
+
+      // FORM DATA
+      body: formData,
+    })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Creating or editing a post failed!");
@@ -177,7 +212,9 @@ class Feed extends Component {
   deletePostHandler = (postId) => {
     this.setState({ postsLoading: true });
 
-    fetch("URL")
+    fetch(`http://localhost:8080/feed/posts/${postId}`, {
+      method: "DELETE",
+    })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Deleting a post failed!");

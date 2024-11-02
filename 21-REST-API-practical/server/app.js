@@ -1,37 +1,61 @@
+const path = require("path");
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const multer = require("multer");
+const { v4: uuidv4 } = require("uuid");
+
+const MONGODB_DATABASE = "messages";
+const MONGODB_URI = `mongodb+srv://hadar-read-write:aXRMIfT9ItS6RM40@mongointrocluster09.uwvnh.mongodb.net/${MONGODB_DATABASE}?retryWrites=true&w=majority`;
 
 const feedRoutes = require("./routes/feed");
 
 const app = express();
 
-// will parse the body as json instead of the traditional parsing of x-www-form-urlencoded
-// it will parsed as application/json
-app.use(bodyParser.json());
-
-// CORS stands for Cross Origin Resource Sharing which is disabled by defaut
-// if the client and the server shares the same domain like in previous lessions when express is used with ejs
-// then there is no problem. the issue is when trying to access a domain from a different domain, thats why
-// the browser blocks this access for security purposes.
-// this middleware will enable CORS
-app.use((req, res, next) => {
-  // allows access to the server from any domain with using "*"
-  req.setHeader("Access-Control-Allow-Origin", "*");
-  // allows http methods to the server
-  req.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE"
-  );
-  // allows type of headers which can be passed in the request
-  req.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  next();
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, uuidv4() + file.originalname);
+  },
 });
 
-// // CORS enabling can also be done with using the cors package as middleware
-// app.use(cors());
+const fileFilter = (req, file, cb) => {
+  const isImageType =
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg";
+
+  cb(null, isImageType);
+};
+
+app.use(bodyParser.json());
+
+app.use(multer({ storage: fileStorage, fileFilter }).single("image"));
+
+app.use("/images", express.static(path.join(__dirname, "images")));
+
+app.use(cors());
 
 app.use("/feed", feedRoutes);
 
-app.listen(8080);
+app.use((error, req, res, next) => {
+  console.log(error);
+
+  const status = error.statusCode || 500;
+  const message = error.message;
+
+  res.status(status).json({ message });
+});
+
+mongoose
+  .connect(MONGODB_URI)
+  .then((result) => {
+    app.listen(8080);
+  })
+  .catch((err) => {
+    console.log(err);
+  });

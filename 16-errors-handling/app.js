@@ -81,6 +81,9 @@ app.get("/500", errorController.get500);
 
 app.use(errorController.get404);
 
+// this is a special middleware which is detected by express because it is 4 arguments
+// and can be used in catch blocks on the controllers
+// in catch blocks when you use next(err) it will trigger this middleware
 app.use((error, req, res, next) => {
   console.log(error);
 
