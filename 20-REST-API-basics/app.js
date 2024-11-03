@@ -1,3 +1,11 @@
+// REST API stands for Representational State Transfer(REST) Application Programming Interface(API)
+// it is an architectural style for application programming that uses HTTP requests and send data responses
+// which are usually not in HTML format but in JSON(there are also data formats of plain text & XML).
+// unlike the previous lectures, it does not care for a client, a REST API can communicate with another REST API server and
+// it does not have to directly connect with a client.
+// also, it allows HTTP request methods like PUT, PATCH & DELETE unlike the previous lectures where the server
+// was forced only to accept GET & POST because in the ejs files we could only send GET & POST.
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");

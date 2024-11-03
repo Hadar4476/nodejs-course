@@ -11,6 +11,8 @@ const MONGODB_DATABASE = "messages";
 const MONGODB_URI = `mongodb+srv://hadar-read-write:aXRMIfT9ItS6RM40@mongointrocluster09.uwvnh.mongodb.net/${MONGODB_DATABASE}?retryWrites=true&w=majority`;
 
 const feedRoutes = require("./routes/feed");
+const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/user");
 
 const app = express();
 
@@ -41,14 +43,17 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 app.use(cors());
 
 app.use("/feed", feedRoutes);
+app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);
 
   const status = error.statusCode || 500;
   const message = error.message;
+  const data = error.data;
 
-  res.status(status).json({ message });
+  res.status(status).json({ message, data });
 });
 
 mongoose

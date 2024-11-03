@@ -22,7 +22,11 @@ class Feed extends Component {
   };
 
   componentDidMount() {
-    fetch("URL")
+    fetch("http://localhost:8080/user/status", {
+      headers: {
+        Authorization: `Bearer ${this.props.token}`,
+      },
+    })
       .then((res) => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch user status.");
@@ -55,7 +59,12 @@ class Feed extends Component {
       this.setState({ postPage: page });
     }
 
-    fetch(`http://localhost:8080/feed/posts?page=${page}`)
+    fetch(`http://localhost:8080/feed/posts?page=${page}`, {
+      headers: {
+        // Bearer is not a must, but it is a convention
+        Authorization: `Bearer ${this.props.token}`,
+      },
+    })
       .then((res) => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch posts.");
@@ -82,7 +91,19 @@ class Feed extends Component {
 
   statusUpdateHandler = (event) => {
     event.preventDefault();
-    fetch("URL")
+
+    console.log(this.state.status);
+
+    fetch("http://localhost:8080/user/status", {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${this.props.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: this.state.status,
+      }),
+    })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Can't update status!");
@@ -91,7 +112,7 @@ class Feed extends Component {
         return res.json();
       })
       .then((resData) => {
-        console.log(resData);
+        this.setState({ status: resData.status });
       })
       .catch(this.catchError);
   };
@@ -140,6 +161,11 @@ class Feed extends Component {
 
     fetch(url, {
       method,
+
+      headers: {
+        // Bearer is not a must, but it is a convention
+        Authorization: `Bearer ${this.props.token}`,
+      },
 
       // JSON
       // // because we want to upload a file here, we can't use application/json
@@ -214,6 +240,10 @@ class Feed extends Component {
 
     fetch(`http://localhost:8080/feed/posts/${postId}`, {
       method: "DELETE",
+      headers: {
+        // Bearer is not a must, but it is a convention
+        Authorization: `Bearer ${this.props.token}`,
+      },
     })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
