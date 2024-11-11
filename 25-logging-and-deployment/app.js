@@ -84,7 +84,7 @@ const accessLogSTream = fs.createWriteStream(
   { flags: "a" }
 );
 
-// "combined" defines which data is being log and formatted
+// "combined" defines which data is being logged and formatted
 app.use(morgan("combined", { stream: accessLogSTream }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
